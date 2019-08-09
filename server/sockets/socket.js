@@ -18,26 +18,30 @@ io.on("connection", client => {
 
     client.join(usuario.sala);
 
-    usuarios.agregarPersona(
-      client.id,
-      usuario.nombre,
-      usuario.sala
-    );
+    usuarios.agregarPersona(client.id, usuario.nombre, usuario.sala);
 
     client.broadcast
       .to(usuario.sala)
-      .emit("listaPersonas", usuarios.getPersonaPorSala(usuario.sala ));
+      .emit("listaPersonas", usuarios.getPersonaPorSala(usuario.sala));
+    client.broadcast
+      .to(usuario.sala)
+      .emit(
+        "crearMensaje",
+        crearMensaje("Administrador", `${usuario.nombre} entro`)
+      );
 
     regreso(usuarios.getPersonaPorSala(usuario.sala));
   });
 
   //Mensaje grupal
-  client.on("crearMensaje", data => {
+  client.on("crearMensaje", (data, callback) => {
     let persona = usuarios.getPersona(client.id);
 
     let mensaje = crearMensaje(persona.nombre, data.mensaje);
 
     client.broadcast.to(persona.sala).emit("crearMensaje", mensaje);
+
+    callback(mensaje);
   });
 
   //Evento de desconexion
